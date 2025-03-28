@@ -1,6 +1,7 @@
 # ramb
 
-<img width="555" alt="image" src="https://github.com/user-attachments/assets/7dc5a092-b0e7-4052-a67c-e594490f05cd" />
+<img width="537" alt="image" src="https://github.com/user-attachments/assets/0ef01453-cc72-4a4b-b1d1-5ac318d0b342" />
+
 
 
 
