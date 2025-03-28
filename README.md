@@ -1,6 +1,7 @@
 # ramb
 
-<img width="514" alt="image" src="https://github.com/user-attachments/assets/ff8e77d9-99bd-4c9e-bfbd-c16bec17b03e" />
+<img width="555" alt="image" src="https://github.com/user-attachments/assets/7dc5a092-b0e7-4052-a67c-e594490f05cd" />
+
 
 
 A generalized backtracking search library for Racket
