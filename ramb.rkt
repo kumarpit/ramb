@@ -1,7 +1,5 @@
 #lang racket
 
-(provide amb/fail-initialize amb)
-
 ;; `amb` (ambiguity operator) chooses one of the given options.
 ;; If an option (or its continuation) results in failure, amb backtracks and
 ;; tries the next. If all options fail, an error is raised.
@@ -76,10 +74,34 @@
 
 ;; Finds the pairs of numbers (x, y) such that x is in a and y is in b
 ;; and x + y = 8
-(define sum-to-8
+(define solve/sum-to-8
   (λ ()
     (let ([a (amb 1 2 3 4 5)]
           [b (amb 6 7 8 9 10)])
       (assert (equal? (+ a b) 8))
       (list a b))))
-(bag-of (sum-to-8))
+(bag-of (solve/sum-to-8))
+
+;; Solving the eight queens problem. We represent the position of the queens
+;; with the following notation: (r_1, r_2, ..., r_8) where r_i represents the
+;; row position of a queen in the ith column. Such an assignment is a valid
+;; solution only if when i != j, then r_i + i != r_j + j and r_i - i != r_j - j
+(define solve/8-queens
+  (λ ()
+    (let* ([rows-occupied (make-list 8 0)]
+           [+diagonals-occupied (make-list 15 0)]
+           [-diagonals-occupied (make-list 15 0)])
+      (for ([col (in-range 1 9)])
+        (let* ([row (amb 1 2 3 4 5 6 7 8)]
+               [+idx (- (+ row col) 2)]
+               [-idx (+ (- row col) 7)])
+          (assert (and (equal?
+                        (list-ref rows-occupied row) 0)
+                       (equal?
+                        (list-ref +diagonals-occupied +idx) 0)
+                       (equal?
+                        (list-ref -diagonals-occupied -idx) 0)))
+          (list-set rows-occupied row 1)
+          (list-set +diagonals-occupied +idx 1)
+          (list-set -diagonals-occupied -idx 1)
+          (displayln (cons row col)))))))
