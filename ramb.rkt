@@ -3,22 +3,20 @@
 (define amb/fail (λ () (error "No possible solution")))
 (define-syntax amb
   (syntax-rules ()
-    [(_ opts ...)
+    [(_ opt ...)
      (let [(amb/fail-current amb/fail)]
        (call/cc
         (λ (sk)
-          (begin
-            (for-each (λ (opt)
-                        (call/cc
-                         (λ (fk)
+          (call/cc
+           (λ (fk)
+             (begin
+               (set!
+                amb/fail (λ ()
                            (begin
-                             (set! amb/fail (λ ()
-                                              (begin
-                                                (set! amb/fail amb/fail-current)
-                                                (fk #f))))
+                             (set! amb/fail amb/fail-current)
+                             (fk #f))))
                              
-                             (sk opt)))))
-                      (list opts ...))
-            (amb/fail-current)))))]))
+               (sk opt)))) ...
+          (amb/fail-current))))]))
 
-(amb (amb) 2 3)
+(amb (amb/fail) 2 3)
