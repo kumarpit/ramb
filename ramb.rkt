@@ -1,11 +1,14 @@
 #lang racket
 
 ;; `amb` (ambiguity operator) chooses one of the given options.
-;; If an option leads to failure, it backtracks and tries the next.
-;; If all options fail, an error is raised. This implementation is
-;; provides a 2 continuation model of backtracking.
+;; If an option (or its continuation) results in failure, amb backtracks and
+;; tries the next. If all options fail, an error is raised.
 
-;; The failure continuation that gets reset when all options are exhausted.
+;; This implementation is provides a 2 continuation model of backtracking, i.e
+;; it implements backtracking using a "success" and a "failure" continuation.
+
+;; The failure continuation that gets reset when all options are exhausted. This
+;; may be set to different values during the search.
 (define amb/fail (λ () (error "Amb search tree exhausted")))
 
 (define-syntax amb
@@ -31,4 +34,3 @@
                (sk opt)))) ...
           ;; Trigger failure if all options are exhausted
           (amb/fail-current))))]))
-
