@@ -44,20 +44,20 @@
 ;; Collects all valid solutions for an `amb` expression
 (define-syntax bag-of
   (syntax-rules ()
-   [(_ expr)
-      (let* ([amb/fail-current amb/fail]
-             [results empty])
-        (if (call/cc
-             (λ (k)
-               ;; Replace the entry failure continuation for expr with a call
-               ;; to the else branch of this if statement
-               (set! amb/fail (λ () (k #f)))
-               (set! results (cons expr results))
-               (k #t))) ;; Recursion!
-            (amb/fail)
-            (begin
-              (set! amb/fail amb/fail-current)
-              (reverse results))))]))
+    [(_ expr)
+     (let* ([amb/fail-current amb/fail]
+            [results empty])
+       (if (call/cc
+            (λ (k)
+              ;; Replace the entry failure continuation for expr with a call
+              ;; to the else branch of this if statement
+              (set! amb/fail (λ () (k #f)))
+              (set! results (cons expr results))
+              (k #t))) ;; Recursion!
+           (amb/fail)
+           (begin
+             (set! amb/fail amb/fail-current)
+             (reverse results))))]))
 
 ;; Evaluates a predicate and fails the current continuation if it evaluates
 ;; to false
@@ -88,20 +88,20 @@
 ;; solution only if when i != j, then r_i + i != r_j + j and r_i - i != r_j - j
 (define solve/8-queens
   (λ ()
-    (let* ([rows-occupied (make-list 8 0)]
-           [+diagonals-occupied (make-list 15 0)]
-           [-diagonals-occupied (make-list 15 0)])
-      (for ([col (in-range 1 9)])
+    (let* ([rows-occupied (make-vector 9 0)]
+           [+diagonals-occupied (make-vector 15 0)]
+           [-diagonals-occupied (make-vector 15 0)])
+      (displayln 'searching)
+      (for ([col (in-range 1 8)])
         (let* ([row (amb 1 2 3 4 5 6 7 8)]
                [+idx (- (+ row col) 2)]
                [-idx (+ (- row col) 7)])
-          (assert (and (equal?
-                        (list-ref rows-occupied row) 0)
-                       (equal?
-                        (list-ref +diagonals-occupied +idx) 0)
-                       (equal?
-                        (list-ref -diagonals-occupied -idx) 0)))
-          (list-set rows-occupied row 1)
-          (list-set +diagonals-occupied +idx 1)
-          (list-set -diagonals-occupied -idx 1)
-          (displayln (cons row col)))))))
+          (displayln `(col-iter-value: ,col))
+          (assert (and (equal? (vector-ref rows-occupied row) 0)
+                       (equal? (vector-ref +diagonals-occupied +idx) 0)
+                       (equal? (vector-ref -diagonals-occupied -idx) 0)))
+          (vector-set! rows-occupied row 1)
+          (vector-set! +diagonals-occupied +idx 1)
+          (vector-set! -diagonals-occupied -idx 1)
+          (displayln (list `(row: ,row) `(col: ,col))))))))
+(solve/8-queens)
