@@ -59,18 +59,31 @@
              (set! amb/fail amb/fail-current)
              (reverse results))))]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; UTILITIES
+;; These methods make it easier to model problems using the `ramb` library
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Equivalent to (amb lo ... hi) with a step-size of 1
+(define number-between
+  (λ (lo hi)
+    (let loop ((i lo))
+      (if (> i hi) (amb)
+          (amb i (loop (+ i 1)))))))
+
 ;; Evaluates a predicate and fails the current continuation if it evaluates
 ;; to false
 (define assert
   (λ (pred)
     (if (not pred) (amb/fail) #f)))
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; EXAMPLES
 ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Finds the pairs of numbers (x, y) such that x is in a and y is in b
 ;; and x + y = 8
@@ -86,24 +99,18 @@
 ;; with the following notation: (r_1, r_2, ..., r_8) where r_i represents the
 ;; row position of a queen in the ith column. Such an assignment is a valid
 ;; solution only if when i != j, then r_i + i != r_j + j and r_i - i != r_j - j
-;; TODO: The issues with this code is that the mutatble variables are not
-;; restored when the failure continuations are called, causing very weird issues
 (define solve/8-queens
   (λ ()
-    (let* ([rows-occupied (make-vector 9 0)]
-           [+diagonals-occupied (make-vector 16 0)]
-           [-diagonals-occupied (make-vector 16 0)])
-      (displayln 'searching)
-      (let loop ((col 1))
-        (let* ([row (amb 1 2 3 4 5 6 7 8)]
-               [+idx (- (+ row col) 1)]
-               [-idx (+ (- row col) 8)])
-          (assert (and (equal? (vector-ref rows-occupied row) 0)
-                       (equal? (vector-ref +diagonals-occupied +idx) 0)
-                       (equal? (vector-ref -diagonals-occupied -idx) 0)))
-          (vector-set! rows-occupied row 1)
-          (vector-set! +diagonals-occupied +idx 1)
-          (vector-set! -diagonals-occupied -idx 1)
-          (displayln (list `(row: ,row) `(col: ,col)))
-          (if (equal? 8 col) (values "done") (loop (+ col 1))))))))
+    (define queens (build-list 8 (λ (_) (number-between 1 8))))
+    (assert (and
+             ; same rows?
+             (equal? (length queens) (length (remove-duplicates queens)))
+             ; same diagonals?
+             (for/and ([i (in-range 8)])
+               (for/and ([j (in-range i)])
+                 (not
+                  (=
+                   (abs (- (list-ref queens i) (list-ref queens j)))
+                   (abs (- i j))))))))
+    (displayln queens)))
 (solve/8-queens)
