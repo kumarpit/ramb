@@ -41,30 +41,28 @@
           ;; Trigger failure if all options are exhausted
           (amb/fail-current))))]))
 
+;; Essentially the same as above, except that this allows you to pass a list
+;; to amb, i.e (amb/list (list 1 2 3)) will choose between the elements of the
+;; list while (amb (list 1 2 3)) treats the entire list as an option
 (define-syntax amb/list
   (syntax-rules ()
-    [(_ opt ...)
-     ;; Save the failure continuation at time of entry
+    [(_ opts)
      (let [(amb/fail-current amb/fail)]
        (call/cc
-        ;; Captures the success continuation (i.e amb's entry continuation)
         (λ (sk)
-          (call/cc
-           (λ (fk) ;; Captures the failure continuation
-             (begin
-               (set!
-                ;; Reset amb/fail to the failure continuation stored earlier
-                ;; and try the next option
-                amb/fail (λ ()
-                           (begin
-                             (set! amb/fail amb/fail-current)
-                             (fk #f))))
-
-               ;; Try each option left-to-right (chronological backtracking)
-               (sk opt)))) ...
-          ;; Trigger failure if all options are exhausted
+          (for-each
+           (λ (opt)
+             (call/cc
+              (λ (fk)
+                (begin
+                  (set!
+                   amb/fail (λ ()
+                              (begin
+                                (set! amb/fail amb/fail-current)
+                                (fk #f))))
+                  (sk opt)))))
+           opts)
           (amb/fail-current))))]))
-
 
 ;; Collects all valid solutions for an `amb` expression
 (define-syntax bag-of
