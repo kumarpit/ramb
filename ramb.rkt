@@ -41,6 +41,31 @@
           ;; Trigger failure if all options are exhausted
           (amb/fail-current))))]))
 
+(define-syntax amb/list
+  (syntax-rules ()
+    [(_ opt ...)
+     ;; Save the failure continuation at time of entry
+     (let [(amb/fail-current amb/fail)]
+       (call/cc
+        ;; Captures the success continuation (i.e amb's entry continuation)
+        (λ (sk)
+          (call/cc
+           (λ (fk) ;; Captures the failure continuation
+             (begin
+               (set!
+                ;; Reset amb/fail to the failure continuation stored earlier
+                ;; and try the next option
+                amb/fail (λ ()
+                           (begin
+                             (set! amb/fail amb/fail-current)
+                             (fk #f))))
+
+               ;; Try each option left-to-right (chronological backtracking)
+               (sk opt)))) ...
+          ;; Trigger failure if all options are exhausted
+          (amb/fail-current))))]))
+
+
 ;; Collects all valid solutions for an `amb` expression
 (define-syntax bag-of
   (syntax-rules ()
@@ -98,6 +123,7 @@
 
 ;; Solving the map-coloring problem described here:
 ;; https://www.metalevel.at/prolog/optimization
+(define map-colors (list 'red 'green 'blue 'yellow))
 (define adjacency-list
   (hash 'a '(b c d f)
         'b '(a c d)
@@ -108,25 +134,25 @@
 
 (define solve/map-coloring
   (λ ()
-    (define node-colors
-      (hash 'a (amb 'red 'green 'blue 'yellow)
-            'b (amb 'red 'green 'blue 'yellow)
-            'c (amb 'red 'green 'blue 'yellow)
-            'd (amb 'red 'green 'blue 'yellow)
-            'e (amb 'red 'green 'blue 'yellow)
-            'f (amb 'red 'green 'blue 'yellow)))
-    (assert (andmap
-             (λ (kv)
-               (let* ([node (car kv)]
-                      [node-color (cdr kv)]
-                      [neighbour-colors
-                       (map
-                        (λ (neighbour)
-                          (hash-ref node-colors neighbour))
-                        (hash-ref adjacency-list node))])
-                 (not (member node-color neighbour-colors)))) 
-             (hash->list node-colors)))
-    (displayln node-colors)))
+    (let ([node-colors
+           (hash 'a (amb/list map-colors)
+                 'b (amb/list map-colors)
+                 'c (amb/list map-colors)
+                 'd (amb/list map-colors)
+                 'e (amb/list map-colors)
+                 'f (amb/list map-colors))])
+      (assert (andmap
+               (λ (kv)
+                 (let* ([node (car kv)]
+                        [node-color (cdr kv)]
+                        [neighbour-colors
+                         (map
+                          (λ (neighbour)
+                            (hash-ref node-colors neighbour))
+                          (hash-ref adjacency-list node))])
+                   (not (member node-color neighbour-colors)))) 
+               (hash->list node-colors)))
+      (displayln node-colors))))
 (solve/map-coloring)
                  
 
