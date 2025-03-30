@@ -95,22 +95,60 @@
       (list a b))))
 (bag-of (solve/sum-to-8))
 
-;; Solving the eight queens problem. We represent the position of the queens
-;; with the following notation: (r_1, r_2, ..., r_8) where r_i represents the
-;; row position of a queen in the ith column. Such an assignment is a valid
-;; solution only if when i != j, then r_i + i != r_j + j and r_i - i != r_j - j
+
+;; Solving the map-coloring problem described here:
+;; https://www.metalevel.at/prolog/optimization
+(define adjacency-list
+  (hash 'a '(b c d f)
+        'b '(a c d)
+        'c '(a b d e)
+        'd '(a b c e f)
+        'e '(c d f)
+        'f '(a d e)))
+
+(define solve/map-coloring
+  (λ ()
+    (define node-colors
+      (hash 'a (amb 'red 'green 'blue 'yellow)
+            'b (amb 'red 'green 'blue 'yellow)
+            'c (amb 'red 'green 'blue 'yellow)
+            'd (amb 'red 'green 'blue 'yellow)
+            'e (amb 'red 'green 'blue 'yellow)
+            'f (amb 'red 'green 'blue 'yellow)))
+    (assert (andmap
+             (λ (kv)
+               (let* ([node (car kv)]
+                      [node-color (cdr kv)]
+                      [neighbour-colors
+                       (map
+                        (λ (neighbour)
+                          (hash-ref node-colors neighbour))
+                        (hash-ref adjacency-list node))])
+                 (not (member node-color neighbour-colors)))) 
+             (hash->list node-colors)))
+    (displayln node-colors)))
+(solve/map-coloring)
+                 
+
+;; Solving the eight queens problem
 (define solve/8-queens
   (λ ()
+    ;; only assign columns since the row assignments are implicit
+    ;; (i.e must be 1, 2, 3,..., 8)
     (define queens (build-list 8 (λ (_) (number-between 1 8))))
     (assert (and
-             ; same rows?
+             ;; check for same rows
              (equal? (length queens) (length (remove-duplicates queens)))
-             ; same diagonals?
-             (for/and ([i (in-range 8)])
-               (for/and ([j (in-range i)])
-                 (not
-                  (=
-                   (abs (- (list-ref queens i) (list-ref queens j)))
-                   (abs (- i j))))))))
+             ;; check for same diagonals
+             (andmap (λ (i)
+                       (andmap (λ (j)
+                                 (not
+                                  (=
+                                   (abs
+                                    (- (list-ref queens i)
+                                       (list-ref queens j)))
+                                   (abs (- i j)))))
+                               (range i)))
+                     (range (length queens)))))
     (displayln queens)))
 (solve/8-queens)
