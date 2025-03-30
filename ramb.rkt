@@ -133,12 +133,10 @@
 (define solve/map-coloring
   (λ ()
     (let ([node-colors
-           (hash 'a (amb/list map-colors)
-                 'b (amb/list map-colors)
-                 'c (amb/list map-colors)
-                 'd (amb/list map-colors)
-                 'e (amb/list map-colors)
-                 'f (amb/list map-colors))])
+           (apply hash
+                  (append-map (λ (node)
+                                (list node (amb/list map-colors)))
+                              '(a b c d e f)))])
       (assert (andmap
                (λ (kv)
                  (let* ([node (car kv)]
