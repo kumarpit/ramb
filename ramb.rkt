@@ -3,23 +3,25 @@
 ;; ramb(iguous)
 ;; An implementation of the `amb` opeator and other utilities to provide
 ;; generalized backtracking search capabilities for Racket
-;; `amb` (ambiguity operator) chooses one of the given options.
 ;;
-;; If an option (or its continuation) results in failure, amb backtracks and
-;; tries the next. If all options fail, an error is raised.
+;;`amb` (ambiguity operator) chooses one of the given options. If an option
+;; (or its continuation) results in failure, amb backtracks and tries the next.
+;; If all options fail, an error is raised.
 ;;
-;; This implementation is provides a 2 continuation model of backtracking, i.e
-;; it implements backtracking using a "success" and a "failure" continuation. It
-;; is based on the implementation described in section 14.2 of "Teach Yourself
-;; Scheme in Fixnum Days" by Dorai Sitaram.
+;; This implementation is based on the implementation described in section 14.2
+;; of "Teach Yourself Scheme in Fixnum Days" by Dorai Sitaram.
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; RAMB
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; The failure continuation that gets called when the current continuation
-;; fails - it is defined as a global and mutated by every branch that search
+;; fails - it is defined as a global and mutated by every branch that the search
 ;; takes to keep track of where to return to in case of a failure
 (define amb/fail
-  (λ ()
-    (set! amb/fail (λ () (error "Amb search tree exhausted")))))
+  (λ () (error "Amb search tree exhausted")))
 
 (define-syntax amb
   (syntax-rules ()
@@ -99,7 +101,8 @@
              (set! amb/fail amb/fail-current)
              (reverse results))))]))
 
-;; Equivalent to (amb lo ... hi) with a step-size of 1
+;; Equivalent to (amb lo lo+1 ... hi). Alternatively, you could use
+;; (amb/list (range lo hi+1))
 (define number-between
   (λ (lo hi)
     (let loop ((i lo))
