@@ -17,11 +17,12 @@ Here is a simple program that uses `ramb` to find pairs `(x, y)` such that `x` i
           [b (amb 6 7 8 9 10)])
       (assert (equal? (+ a b) 8))
       (list a b))))
-(bag-of (solve/sum-to-8))
+(bag-of (solve/sum-to-8) 2)
 ```
 
 A few things to note here:
-- `bag-of` is a method that enables you to return all solutions (`ramb` by default will return the first possible solution)
+- `bag-of` is a macro that optionally takes in a number that specifies how many solutions you are looking for. If no number is provided, it returns a list of all solutions to the problem. Calling `solve/sum-to-8` without wrapping it in a `bag-of` will return the first solution.
+- `assert` allows you to define constraints that the ambigious variables in your problem must fulfill - it expects a predicate function as an argument
 - `ramb` performs chronological backtracking on your search space
 
 A more sophisticated example is the following program that solves the map coloring problem described [here](https://www.metalevel.at/prolog/optimization). Here is the map from the problem:
@@ -58,9 +59,10 @@ A more sophisticated example is the following program that solves the map colori
                           (hash-ref adjacency-list node))])
                    (not (member node-color neighbour-colors)))) 
                (hash->list node-colors)))
-      (displayln node-colors))))
-(solve/map-coloring)
+      (values node-colors))))
+(bag-of (solve/map-coloring) 3)
 ```
+Note the use of `amb/list` here, which allows you to pass in a choices as a list to `amb` rather than individual values. This is helpful in allowing you to re-use artifacts from your problem definition.
 
 Finally, here is an example program that solves the [8 queens problem](https://en.wikipedia.org/wiki/Eight_queens_puzzle):
 ```racket
@@ -83,6 +85,7 @@ Finally, here is an example program that solves the [8 queens problem](https://e
                                    (abs (- i j)))))
                                (range i)))
                      (range (length queens)))))
-    (displayln queens)))
+    (values queens)))
 (solve/8-queens)
 ```
+Note the use of `number-between` - this is a utility function that is equivalent to `(amb lo lo+1 ... hi)`. Alternatively, you could also use `(amb/list (range lo hi+1))`.
