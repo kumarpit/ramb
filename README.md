@@ -25,7 +25,9 @@ A few things to note here:
 - `ramb` performs chronological backtracking on your search space
 
 A more sophisticated example is the following program that solves the map coloring problem described [here](https://www.metalevel.at/prolog/optimization). Here is the map from the problem:
+
 <img width="385" alt="image" src="https://github.com/user-attachments/assets/4843fe57-a5a0-468e-a20f-34bcbc3cf819" />
+
 
 
 ```racket
