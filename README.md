@@ -4,7 +4,7 @@
 <br/>
 <br/>
 
-`ramb` provides an implementation of the `amb` operator for Racket. This implementation is largely based on the one descriped in [this section](https://docs.scheme.org/tyscheme/index-Z-H-16.html#TAG:__tex2page_sec_14.2) of "Teach Yourself Scheme in Fixnum Days" by Dorai Sitaram. In short, this implementation uses a 2 continuation model of `amb` - the success and failure continuations - wherein the failure continuation gets updated as different options are tried.
+`ramb` provides an implementation of the `amb` operator for Racket. This implementation is largely based on the one descriped in [this section](https://docs.scheme.org/tyscheme/index-Z-H-16.html#TAG:__tex2page_sec_14.2) of "Teach Yourself Scheme in Fixnum Days" by Dorai Sitaram.
 
 ## Usage
 
@@ -57,7 +57,7 @@ A more sophisticated example is the following program that solves the map colori
 (solve/map-coloring)
 ```
 
-Finally, here is an example program that solves the 8 queens problem:
+Finally, here is an example program that solves the [8 queens problem](https://en.wikipedia.org/wiki/Eight_queens_puzzle):
 ```racket
 (define solve/8-queens
   (λ ()
