@@ -1,21 +1,25 @@
 #lang racket
 
+;; ramb(iguous)
+;; An implementation of the `amb` opeator and other utilities to provide
+;; generalized backtracking search capabilities for Racket
 ;; `amb` (ambiguity operator) chooses one of the given options.
+;;
 ;; If an option (or its continuation) results in failure, amb backtracks and
 ;; tries the next. If all options fail, an error is raised.
-
+;;
 ;; This implementation is provides a 2 continuation model of backtracking, i.e
-;; it implements backtracking using a "success" and a "failure" continuation.
+;; it implements backtracking using a "success" and a "failure" continuation. It
+;; is based on the implementation described in section 14.2 of "Teach Yourself
+;; Scheme in Fixnum Days" by Dorai Sitaram.
 
-;; The failure continuation that gets reset when all options are exhausted. This
-;; may be set to different values during the search.
-(define amb/fail #f)
 
-(define amb/fail-initialize
+;; The failure continuation that gets called when the current continuation
+;; fails - it is defined as a global and mutated by every branch that search
+;; takes to keep track of where to return to in case of a failure
+(define amb/fail
   (λ ()
     (set! amb/fail (λ () (error "Amb search tree exhausted")))))
-
-(amb/fail-initialize)
 
 (define-syntax amb
   (syntax-rules ()
@@ -63,11 +67,21 @@
                   (sk opt)))))
            opts)
           (amb/fail-current))))]))
+     
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; UTILITIES
+;; These methods make it easier to model problems using the `ramb` library
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Collects all valid solutions for an `amb` expression
+;; Collects all valid solutions for an `amb` expression or upto
+;; `results-requested` solutions
 (define-syntax bag-of
   (syntax-rules ()
     [(_ expr)
+     (bag-of expr #f)]
+    [(_ expr results-requested)
      (let* ([amb/fail-current amb/fail]
             [results empty])
        (if (call/cc
@@ -76,18 +90,14 @@
               ;; to the else branch of this if statement
               (set! amb/fail (λ () (k #f)))
               (set! results (cons expr results))
-              (k #t))) ;; Recursion!
+              (if (and results-requested
+                       (= (length results) results-requested))
+                  (k #f)
+                  (k #t))))
            (amb/fail)
            (begin
              (set! amb/fail amb/fail-current)
              (reverse results))))]))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; UTILITIES
-;; These methods make it easier to model problems using the `ramb` library
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Equivalent to (amb lo ... hi) with a step-size of 1
 (define number-between
@@ -116,7 +126,7 @@
           [b (amb 6 7 8 9 10)])
       (assert (equal? (+ a b) 8))
       (list a b))))
-(bag-of (solve/sum-to-8))
+(bag-of (solve/sum-to-8) 2)
 
 
 ;; Solving the map-coloring problem described here:
@@ -148,8 +158,8 @@
                           (hash-ref adjacency-list node))])
                    (not (member node-color neighbour-colors)))) 
                (hash->list node-colors)))
-      (displayln node-colors))))
-(solve/map-coloring)
+      (values node-colors))))
+(bag-of (solve/map-coloring) 3)
                  
 
 ;; Solving the eight queens problem
@@ -172,5 +182,5 @@
                                    (abs (- i j)))))
                                (range i)))
                      (range (length queens)))))
-    (displayln queens)))
-(solve/8-queens)
+    (values queens)))
+(bag-of (solve/8-queens) 2)
